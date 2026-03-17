@@ -266,7 +266,7 @@ Airflow chịu trách nhiệm:
 - theo dõi trạng thái task
 - cho phép rerun task hoặc rerun toàn bộ pipeline
 - lưu lịch sử các lần chạy
-
+![DAG](./img/Screenshot%202026-03-17%20153006.png)
 ### 8.4 MLflow Tracking
 
 MLflow được sử dụng để:
@@ -287,6 +287,7 @@ customer_churn_training
 FastAPI được sử dụng để phục vụ model production qua REST API.
 
 Các endpoint chính:
+![FASTAPI](./img/fastapi.png)
 
 #### `GET /health`
 Kiểm tra trạng thái hoạt động của service.
@@ -296,9 +297,11 @@ Nhận input khách hàng và trả về:
 - nhãn dự đoán churn
 - xác suất churn
 
+![FASTAPI](./img/predict%20(1).png)
 #### `POST /reload-model`
-Reload production model sau khi deploy model mới.
+Reload production model sau khi deploy model mới. 
 
+![FASTAPI](./img/reload.png)
 ---
 
 ## 9. Dataset
