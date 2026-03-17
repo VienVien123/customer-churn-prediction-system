@@ -1,0 +1,12 @@
+{
+  "model_name": "churn_prediction_model",
+  "model_path": "registry/production/model.joblib",
+  "updated_at": "2026-03-17T12:55:42.436540",
+  "metrics": {
+    "accuracy": 0.8963217530368506,
+    "precision": 0.925605716547572,
+    "recall": 0.8886,
+    "f1_score": 0.9067254415771268,
+    "roc_auc": 0.9606688186129377
+  }
+}

@@ -1,0 +1,23 @@
+artifact_path: file:///D:/CONGNGHEMOI/aio2025-mlops-project01-main/aio2025-mlops-project01-main/mlruns/1/models/m-3d2cc1bc9e1b4fa893fd9d6dc7f6475b/artifacts
+flavors:
+  python_function:
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.sklearn
+    model_path: model.pkl
+    predict_fn: predict
+    python_version: 3.10.0
+  sklearn:
+    code: null
+    pickled_model: model.pkl
+    serialization_format: cloudpickle
+    sklearn_version: 1.7.2
+    skops_trusted_types: null
+mlflow_version: 3.10.1
+model_id: m-3d2cc1bc9e1b4fa893fd9d6dc7f6475b
+model_size_bytes: 3838
+model_uuid: m-3d2cc1bc9e1b4fa893fd9d6dc7f6475b
+prompts: null
+run_id: c4d8b1861597456faed48865a1fcbb82
+utc_time_created: '2026-03-16 10:10:12.518796'

@@ -1,0 +1,34 @@
+{
+  "rows": 440833,
+  "columns": [
+    "CustomerID",
+    "Age",
+    "Gender",
+    "Tenure",
+    "Usage Frequency",
+    "Support Calls",
+    "Payment Delay",
+    "Subscription Type",
+    "Contract Length",
+    "Total Spend",
+    "Last Interaction",
+    "Churn"
+  ],
+  "missing_required_columns": [],
+  "null_counts": {
+    "CustomerID": 1,
+    "Age": 1,
+    "Gender": 1,
+    "Tenure": 1,
+    "Usage Frequency": 1,
+    "Support Calls": 1,
+    "Payment Delay": 1,
+    "Subscription Type": 1,
+    "Contract Length": 1,
+    "Total Spend": 1,
+    "Last Interaction": 1,
+    "Churn": 1
+  },
+  "duplicate_rows": 0,
+  "is_valid": true
+}

@@ -1,0 +1,17 @@
+services:
+  mlflow:
+    build:
+      context: .
+      dockerfile: infra/docker/mlflow-simple/Dockerfile
+    container_name: churn_mlflow
+    command: >
+      mlflow server
+      --backend-store-uri sqlite:///mlflow.db
+      --default-artifact-root /mlflow/artifacts
+      --host 0.0.0.0
+      --port 5000
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./mlruns:/mlflow/artifacts
+      - ./mlflow_data:/app

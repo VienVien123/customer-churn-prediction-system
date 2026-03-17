@@ -1,0 +1,8 @@
+requests
+pandas==2.3.3
+openpyxl==3.1.5
+pyarrow==21.0.0
+scikit-learn==1.8.0
+mlflow==3.8.1
+pyyaml==6.0.3
+python-dotenv==1.2.1

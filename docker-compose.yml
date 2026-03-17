@@ -1,0 +1,145 @@
+name: churn-mlops-simple
+
+services:
+  airflow-postgres:
+    image: postgres:16
+    container_name: churn_airflow_postgres
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    volumes:
+      - airflow-postgres-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "airflow"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  airflow-init:
+    build: ./infra/docker/airflow
+    container_name: churn_airflow_init
+    depends_on:
+      airflow-postgres:
+        condition: service_healthy
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@airflow-postgres/airflow
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "false"
+      _AIRFLOW_DB_MIGRATE: "true"
+      _AIRFLOW_WWW_USER_CREATE: "true"
+      _AIRFLOW_WWW_USER_USERNAME: airflow
+      _AIRFLOW_WWW_USER_PASSWORD: airflow
+    volumes:
+      - ./infra/docker/airflow/dags:/opt/airflow/dags
+      - ./infra/docker/airflow/logs:/opt/airflow/logs
+      - ./infra/docker/airflow/plugins:/opt/airflow/plugins
+      - ./:/opt/project
+      - ./mlflow:/mlflow
+    user: "0:0"
+    entrypoint: /bin/bash
+    command:
+      - -c
+      - |
+        set -e
+        mkdir -p /opt/airflow/logs /opt/airflow/dags /opt/airflow/plugins
+        airflow db migrate
+        airflow users create \
+          --username "$${_AIRFLOW_WWW_USER_USERNAME}" \
+          --password "$${_AIRFLOW_WWW_USER_PASSWORD}" \
+          --firstname Airflow --lastname Admin \
+          --role Admin --email admin@example.com
+
+  airflow-webserver:
+    build: ./infra/docker/airflow
+    container_name: churn_airflow_webserver
+    depends_on:
+      airflow-postgres:
+        condition: service_healthy
+      airflow-init:
+        condition: service_completed_successfully
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@airflow-postgres/airflow
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "false"
+      # Pipeline env
+      PROJECT_ROOT: /opt/project
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+    volumes:
+      - ./infra/docker/airflow/dags:/opt/airflow/dags
+      - ./infra/docker/airflow/logs:/opt/airflow/logs
+      - ./infra/docker/airflow/plugins:/opt/airflow/plugins
+      - ./:/opt/project
+      - ./mlflow:/mlflow
+    ports:
+      - "8080:8080"
+    command: api-server
+
+  airflow-scheduler:
+    build: ./infra/docker/airflow
+    container_name: churn_airflow_scheduler
+    depends_on:
+      airflow-postgres:
+        condition: service_healthy
+      airflow-init:
+        condition: service_completed_successfully
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@airflow-postgres/airflow
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "false"
+      PROJECT_ROOT: /opt/project
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+    volumes:
+      - ./infra/docker/airflow/dags:/opt/airflow/dags
+      - ./infra/docker/airflow/logs:/opt/airflow/logs
+      - ./infra/docker/airflow/plugins:/opt/airflow/plugins
+      - ./:/opt/project
+      - ./mlflow:/mlflow
+    command: scheduler
+
+  mlflow:
+    build: ./mlflow
+    container_name: churn_mlflow
+    environment:
+      MLFLOW_BACKEND_STORE_URI: sqlite:////mlflow/mlflow.db
+      MLFLOW_DEFAULT_ARTIFACT_ROOT: file:/mlflow/artifacts
+    volumes:
+      - ./mlflow:/mlflow
+    ports:
+      - "5000:5000"
+    command:
+      - /bin/bash
+      - -c
+      - |
+        set -e
+        mkdir -p /mlflow/artifacts
+        mlflow server \
+          --backend-store-uri "$${MLFLOW_BACKEND_STORE_URI}" \
+          --default-artifact-root "$${MLFLOW_DEFAULT_ARTIFACT_ROOT}" \
+          --host 0.0.0.0 --port 5000 \
+          --workers 2 \
+          --serve-artifacts
+
+  fastapi:
+    build: ./serving_pipeline
+    container_name: churn_fastapi
+    depends_on:
+      - mlflow
+    environment:
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+      MODEL_URI: models:/churn_model@production
+      # Where to store inference logs (mounted)
+      INFERENCE_LOG_DIR: /app/api/data/production
+    volumes:
+      - ./serving_pipeline/api/data:/app/api/data
+      - ./serving_pipeline/api/reports:/app/api/reports
+      - ./mlflow:/mlflow
+    ports:
+      - "8000:8000"
+
+volumes:
+  airflow-postgres-db:
+

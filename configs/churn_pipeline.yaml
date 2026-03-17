@@ -1,0 +1,46 @@
+data:
+  source_xlsx: "data-pipeline/data/Newdata/Telco_customer_churn.xlsx"
+  raw_dir: "data-pipeline/data/raw"
+  processed_dir: "data-pipeline/data/processed"
+  features_dir: "data-pipeline/data/features"
+
+features:
+  target_column: "Churn"
+  # If your Excel has different column names, update these lists.
+  categorical:
+    - Gender
+    - Subscription_Type
+    - Contract_Length
+  numeric:
+    - Age
+    - Tenure
+    - Usage_Frequency
+    - Support_Calls
+    - Payment_Delay
+    - Total_Spend
+    - Last_Interaction
+
+model:
+  # one of: logistic_regression, random_forest
+  type: "logistic_regression"
+  random_state: 42
+  test_size: 0.2
+  parameters:
+    logistic_regression:
+      max_iter: 500
+      class_weight: "balanced"
+    random_forest:
+      n_estimators: 300
+      max_depth: 8
+      min_samples_leaf: 5
+      class_weight: "balanced"
+
+mlflow:
+  tracking_uri: "http://mlflow:5000"
+  experiment_name: "churn_batch_pipeline"
+  model_name: "churn_model"
+  gate_metric: "f1_score"
+
+deploy:
+  fastapi_reload_url: "http://fastapi:8000/reload-model"
+
